@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: #0A0A0F;
+  color: #E8E8E8;
+  font-family: var(--font-fira), monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* CRT scan lines — full page overlay */
+/* .scanlines::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(255,255,255,0.008) 2px,
+    rgba(255,255,255,0.008) 4px
+  );
+} */
+
+/* Section divider */
+.section-divider {
+  height: 0.5px;
+  background: linear-gradient(90deg, transparent, rgba(220,20,60,0.2), transparent);
+}
+
+/* Custom scrollbar — keep on-theme */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #0A0A0F; }
+::-webkit-scrollbar-thumb { background: rgba(220,20,60,0.3); border-radius: 4px; }

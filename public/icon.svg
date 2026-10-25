@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="610" height="610" viewBox="0 0 610 610">
+  <defs>
+    <linearGradient id="upperRed" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d90000"/>
+      <stop offset="0.52" stop-color="#ef0008"/>
+      <stop offset="1" stop-color="#a90000"/>
+    </linearGradient>
+    <linearGradient id="upperFacet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b60000"/>
+      <stop offset="1" stop-color="#8f0000"/>
+    </linearGradient>
+    <linearGradient id="lowerRed" x1="0.05" y1="0.1" x2="0.9" y2="0.8">
+      <stop offset="0" stop-color="#ff1019"/>
+      <stop offset="0.58" stop-color="#ff0010"/>
+      <stop offset="1" stop-color="#ed0010"/>
+    </linearGradient>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="#fdfdfd"/>
+    </linearGradient>
+  </defs>
+  <rect width="610" height="610" fill="url(#background)"/>
+  <!-- Upper folded blade -->
+  <path d="M129 205 L468 15 L293 232 L228 296 Z" fill="url(#upperRed)"/>
+  <!-- Dark triangular fold at the center -->
+  <path d="M129 205 L293 232 L228 296 Z" fill="url(#upperFacet)"/>
+  <!-- Narrow central fold -->
+  <path d="M293 232 L296 365 L228 296 Z" fill="#a90000"/>
+  <!-- Lower blade -->
+  <path d="M293 232 L469 375 L469 418 L136 601 L296 365 Z" fill="url(#lowerRed)"/>
+</svg>

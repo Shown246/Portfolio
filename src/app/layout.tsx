@@ -8,6 +8,13 @@ const fira = Fira_Code({ subsets: ['latin'], variable: '--font-fira', weight: ['
 export const metadata: Metadata = {
   title: 'Shihab Shown — Software Developer & AI Engineer',
   description: 'Building intelligent systems, one line at a time.',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon.ico', sizes: 'any' },
+    ],
+    shortcut: '/icon.ico',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

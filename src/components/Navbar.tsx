@@ -48,7 +48,7 @@ export default function Navbar() {
           key={l.id}
           href={`#${l.id}`}
           onClick={go(l.id)}
-          className={`px-3 py-1.5 rounded-[20px] text-[9px] md:text-[10px] transition-colors duration-200 ${
+          className={`px-3 py-1.5 rounded-[20px] text-[12px] md:text-[12px] transition-colors duration-200 ${
             active === l.id
               ? 'text-crimson'
               : 'text-[#888] hover:text-crimson hover:bg-[rgba(220,20,60,0.1)]'

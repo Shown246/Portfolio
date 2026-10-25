@@ -38,11 +38,11 @@ export default function TerminalChat() {
         <span className="w-3 h-3 rounded-full" style={{ background: '#E24B4A' }} />
         <span className="w-3 h-3 rounded-full" style={{ background: '#EF9F27' }} />
         <span className="w-3 h-3 rounded-full" style={{ background: '#97C459' }} />
-        <span className="ml-2 text-[9px] text-[#666]">shihab-ai ~ ask-me-anything</span>
+        <span className="ml-2 text-[10px] text-[#666]">shihab-ai ~ ask-me-anything</span>
       </div>
 
       {/* body */}
-      <div ref={bodyRef} className="px-3 py-3 h-[280px] overflow-y-auto text-[11px] leading-[1.6]">
+      <div ref={bodyRef} className="px-3 py-3 h-[280px] overflow-y-auto text-[12px] leading-[1.6]">
         {history.map((m, i) => (
           <div key={i} className="mb-2">
             {m.role === 'user' ? (
@@ -61,7 +61,7 @@ export default function TerminalChat() {
             value={input}
             onChange={e => setInput(e.target.value)}
             disabled={busy}
-            className="flex-1 bg-transparent outline-none text-[#B0FFB0] text-[11px]"
+            className="flex-1 bg-transparent outline-none text-[#B0FFB0] text-[12px]"
             autoComplete="off"
           />
           <span className="inline-block w-2 h-3 bg-termgreen animate-blink" />

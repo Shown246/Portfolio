@@ -95,11 +95,11 @@ export default function ContactSection() {
         )}
       </form>
 
-      <div className="flex gap-2 mt-8">
+      {/* <div className="flex gap-2 mt-8">
         {['GH','LI','X'].map(s => (
           <a key={s} href="#" className="w-8 h-8 flex items-center justify-center text-[10px] text-[#666] hover:text-crimson hover:border-crimson" style={{ border: '0.5px solid #222' }}>{s}</a>
         ))}
-      </div>
+      </div> */}
     </section>
   );
 }

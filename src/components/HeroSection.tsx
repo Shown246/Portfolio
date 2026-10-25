@@ -1,4 +1,5 @@
 import TerminalChat from './TerminalChat';
+import { socialLinks } from '../data/socialLinks';
 
 export default function HeroSection() {
   return (
@@ -38,13 +39,16 @@ export default function HeroSection() {
           </a>
 
           <div className="flex gap-2">
-            {['GH','LI','X'].map(s => (
+            {socialLinks.map(s => (
               <a
-                key={s}
-                href="#"
-                className="w-8 h-8 flex items-center justify-center text-[10px] text-[#666] transition-colors duration-200 hover:text-crimson hover:border-crimson"
+                key={s.name}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.name}
+                className="w-8 h-8 flex items-center justify-center text-[12px] text-[#666] transition-colors duration-200 hover:text-crimson hover:border-crimson"
                 style={{ border: '0.5px solid #222' }}
-              >{s}</a>
+              >{s.label}</a>
             ))}
           </div>
         </div>

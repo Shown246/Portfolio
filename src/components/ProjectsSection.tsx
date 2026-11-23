@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { projects, type Project } from '@/data/projects';
+import { trackProjectOpen } from '@/components/VisitTracker';
 
 export default function ProjectsSection() {
   const [open, setOpen] = useState<Project | null>(null);
@@ -29,7 +30,7 @@ export default function ProjectsSection() {
         {visibleProjects.map(p => (
           <button
             key={p.id}
-            onClick={() => setOpen(p)}
+            onClick={() => { setOpen(p); trackProjectOpen(p.id); }}
             className="group text-left bg-bg-card overflow-hidden transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(220,20,60,0.15)] flex flex-col justify-between"
             style={{ border: '0.5px solid #1A1A22', borderRadius: 8 }}
           >

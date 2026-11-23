@@ -9,23 +9,28 @@ const IGNORE_KEY = 'portfolio:visit-alert:ignore';
 type VisitState = {
   browserId: string; eventId: string; visitedAt: number;
   path: string; referrer: string; completed: boolean;
+  eventType?: 'project_open'; projectId?: string;
 };
-let memory: VisitState | null = null;
-let inFlight = false;
+const memory = new Map<string, VisitState>();
+const inFlight = new Set<string>();
 
-function readState(): VisitState | null {
+export function trackProjectOpen(projectId: string) {
+  window.dispatchEvent(new CustomEvent('portfolio:project-open', { detail: { projectId } }));
+}
+
+function readState(key = STATE_KEY): VisitState | null {
   try {
-    const value = JSON.parse(localStorage.getItem(STATE_KEY) || 'null');
+    const value = JSON.parse(localStorage.getItem(key) || 'null');
     if (value && typeof value.browserId === 'string' && typeof value.eventId === 'string' &&
         typeof value.visitedAt === 'number' && typeof value.path === 'string' &&
         typeof value.referrer === 'string' && typeof value.completed === 'boolean') return value;
   } catch { /* Storage may be disabled; use this page's memory. */ }
-  return memory;
+  return memory.get(key) || null;
 }
 
-function writeState(state: VisitState) {
-  memory = state;
-  try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch { /* Best effort. */ }
+function writeState(state: VisitState, key = STATE_KEY) {
+  memory.set(key, state);
+  try { localStorage.setItem(key, JSON.stringify(state)); } catch { /* Best effort. */ }
 }
 
 export default function VisitTracker({ enabled }: { enabled: boolean }) {
@@ -46,25 +51,27 @@ export default function VisitTracker({ enabled }: { enabled: boolean }) {
     }
     if (ignored) return;
 
-    const report = async () => {
-      if (document.visibilityState !== 'visible' || inFlight) return;
+    const report = async (projectId?: string) => {
+      const key = projectId ? `${STATE_KEY}:project:${projectId}` : STATE_KEY;
+      if (document.visibilityState !== 'visible' || inFlight.has(key)) return;
       try {
         // Recheck so opting out in another tab also applies here.
         if (localStorage.getItem(IGNORE_KEY) === 'true') return;
       } catch { /* Best effort. */ }
       const now = Date.now();
-      const previous = readState();
+      const previous = readState(key);
       const age = previous ? now - previous.visitedAt : Infinity;
       if (previous?.completed && age >= 0 && age < WINDOW_MS) return;
       const state: VisitState = previous && !previous.completed && age >= 0 && age < PENDING_MS ? previous : {
-        browserId: previous?.browserId || crypto.randomUUID(),
+        browserId: previous?.browserId || readState()?.browserId || crypto.randomUUID(),
         eventId: crypto.randomUUID(), visitedAt: now,
         path: window.location.pathname,
         // Only a hostname leaves the browser; query strings are never collected.
         referrer: document.referrer ? new URL(document.referrer).origin : '', completed: false,
+        ...(projectId ? { eventType: 'project_open' as const, projectId } : {}),
       };
-      writeState(state);
-      inFlight = true;
+      writeState(state, key);
+      inFlight.add(key);
       try {
         // Same event and payload on each attempt; the server/provider deduplicate.
         for (const delay of [0, 2000, 46_000]) {
@@ -79,21 +86,29 @@ export default function VisitTracker({ enabled }: { enabled: boolean }) {
               signal: AbortSignal.timeout(12_000),
             });
             if (response.ok) {
-              writeState({ ...state, completed: true });
+              writeState({ ...state, completed: true }, key);
               return;
             }
             if (response.status < 500 && response.status !== 429) return;
           } catch { /* Retry briefly; never interrupt the portfolio. */ }
         }
-      } finally { inFlight = false; }
+      } finally { inFlight.delete(key); }
     };
     const onVisible = () => { void report().catch(() => {}); };
+    const onProjectOpen = (event: Event) => {
+      const id: unknown = (event as CustomEvent<{ projectId?: unknown }>).detail?.projectId;
+      if (typeof id === 'string' && /^[a-z0-9-]{1,80}$/.test(id)) {
+        void report(id).catch(() => {});
+      }
+    };
     onVisible();
     document.addEventListener('visibilitychange', onVisible);
     window.addEventListener('pageshow', onVisible);
+    window.addEventListener('portfolio:project-open', onProjectOpen);
     return () => {
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('pageshow', onVisible);
+      window.removeEventListener('portfolio:project-open', onProjectOpen);
     };
   }, [enabled]);
   return null;

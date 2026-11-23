@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Redis } from '@upstash/redis';
 import { Resend } from 'resend';
+import { projects } from '@/data/projects';
 import {
   alertsEnabled, buildVisitEmail, FINISH_VISIT, parseVisit,
   RESERVE_VISIT, visitorHash,
@@ -64,6 +65,8 @@ export async function POST(req: Request) {
   try { visit = parseVisit(JSON.parse(raw)); }
   catch { return result('invalid', 400); }
   if (!visit) return result('invalid', 400);
+  const project = visit.eventType === 'project_open' ? projects.find(p => p.id === visit.projectId) : undefined;
+  if (visit.eventType === 'project_open' && !project) return result('invalid', 400);
 
   // Vercel overwrites this header. Never trust arbitrary client-supplied IP headers.
   const ip = req.headers.get('x-vercel-forwarded-for')?.split(',')[0].trim();
@@ -71,7 +74,8 @@ export async function POST(req: Request) {
   const day = new Date().toISOString().slice(0, 10); // Daily quota resets at UTC midnight.
   const secret = env.VISIT_ALERT_HASH_SECRET;
   const prefix = `portfolio-visits:${visitorHash(origin, secret, 'site')}:`;
-  const eventKey = `${prefix}event:${visit.browserId}:${visit.eventId}`;
+  const projectScope = project ? `:project:${project.id}` : '';
+  const eventKey = `${prefix}event:${visit.browserId}:${visit.eventId}${projectScope}`;
   const lockKey = `${eventKey}:lock`;
   const sentKey = `${eventKey}:sent`;
   const owner = randomUUID();
@@ -88,14 +92,14 @@ export async function POST(req: Request) {
   try {
     const email = {
       from, to: recipient,
-      ...buildVisitEmail(visit, ua, req.headers.get('x-vercel-ip-country')),
+      ...buildVisitEmail(visit, ua, req.headers.get('x-vercel-ip-country'), project?.title),
     };
-    const reservation = await redis.eval<[string, string, number], [string, string?]>(RESERVE_VISIT, [
+    const reservation = await redis.eval<[string, string, number, number], [string, string?]>(RESERVE_VISIT, [
       eventKey, sentKey, lockKey,
-      `${prefix}browser:${visit.browserId}`,
-      `${prefix}ip:${visitorHash(ip, secret, day)}`,
+      `${prefix}browser:${visit.browserId}${projectScope}`,
+      `${prefix}ip:${visitorHash(ip, secret, day)}${project ? ':project' : ''}`,
       `${prefix}day:${day}`,
-    ], [owner, JSON.stringify(email), configuredCap]);
+    ], [owner, JSON.stringify(email), configuredCap, project ? 20 : 5]);
     if (reservation[0] === 'busy') return result('retry', 503);
     if (reservation[0] !== 'send') return result(reservation[0]);
 

@@ -10,14 +10,14 @@ const redis = new Redis({
 });
 const prefix = `portfolio-visits:verification:${randomUUID()}:`;
 const keys = new Set();
-function event(name, browser = name) {
+function event(name, browser = name, scope = '') {
   const result = ['payload', 'sent', 'lock'].map(suffix => `${prefix}${name}:${suffix}`);
-  result.push(`${prefix}browser:${browser}`, `${prefix}ip`, `${prefix}day`);
+  result.push(`${prefix}browser:${browser}${scope}`, `${prefix}ip${scope ? ':project' : ''}`, `${prefix}day`);
   result.forEach(key => keys.add(key));
   return result;
 }
-async function reserve(eventKeys, owner = 'owner', cap = 50) {
-  return redis.eval(RESERVE_VISIT, eventKeys, [owner, '{"synthetic":true}', cap]);
+async function reserve(eventKeys, owner = 'owner', cap = 50, ipLimit = 5) {
+  return redis.eval(RESERVE_VISIT, eventKeys, [owner, '{"synthetic":true}', cap, ipLimit]);
 }
 try {
   assert.equal(await redis.ping(), 'PONG');
@@ -38,9 +38,15 @@ try {
   assert.equal(attempts.filter(([status]) => status === 'busy').length, 3);
   for (let i = 0; i < 3; i++) assert.equal((await reserve(event(`network-${i}`)))[0], 'send');
   assert.deepEqual(await reserve(event('network-limited')), ['limited']);
+  // Project cooldowns are independent of visits and other projects, while the
+  // daily budget is shared by both kinds of alert.
+  assert.equal((await reserve(event('project-one', 'first', ':project:one'), 'owner', 50, 20))[0], 'send');
+  assert.deepEqual(await reserve(event('project-repeat', 'first', ':project:one'), 'owner', 50, 20), ['duplicate']);
+  assert.deepEqual(await reserve(event('project-capped', 'first', ':project:two'), 'owner', 1, 20), ['limited']);
+  assert.equal((await reserve(event('project-two', 'first', ':project:two'), 'owner', 50, 20))[0], 'send');
   assert.ok(await redis.ttl(first[0]) > 0);
   assert.ok(await redis.ttl(first[3]) > 0);
-  console.log('PASS: live Redis connection, atomic reservations, retries, lock ownership, cooldown, concurrency, IP quota, daily quota and TTLs.');
+  console.log('PASS: live Redis connection, atomic reservations, retries, lock ownership, per-project cooldowns, concurrency, IP quotas, shared daily quota and TTLs.');
 } finally {
   // Only exact test-owned keys are deleted. No production keys are scanned.
   await redis.del(...keys);

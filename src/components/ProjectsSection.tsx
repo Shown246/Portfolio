@@ -37,7 +37,7 @@ export default function ProjectsSection() {
               <div className={`h-[180px] bg-gradient-to-br ${p.gradient}`} />
               <div className="p-4 flex flex-col gap-2">
                 <h3 className="text-white text-[14px] font-bold">{p.title}</h3>
-                <p className="text-[#888] text-[10px] leading-[1.6]">{p.short}</p>
+                <p className="text-[#888] text-[12px] leading-[1.6]">{p.short}</p>
               </div>
             </div>
             <div className="p-4 pt-0">
@@ -45,8 +45,8 @@ export default function ProjectsSection() {
                 {p.tech.map(t => (
                   <span
                     key={t}
-                    className="text-crimson text-[8px] px-2 py-0.5 rounded"
-                    style={{ background: 'rgba(220,20,60,0.06)', border: '0.5px solid rgba(220,20,60,0.15)' }}
+                    className="text-crimson text-[10px] px-2 py-0.5 rounded"
+                    style={{ background: 'rgba(2, 0, 0, 0.05)', border: '0.5px solid rgba(220,20,60,0.15)' }}
                   >{t}</span>
                 ))}
               </div>
@@ -69,12 +69,12 @@ export default function ProjectsSection() {
 
       {open && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-8"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8"
           style={{ background: 'rgba(0,0,0,0.8)' }}
           onClick={() => setOpen(null)}
         >
           <div
-            className="relative max-w-2xl w-full bg-bg-card p-8"
+            className="relative max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] overflow-y-auto max-w-2xl w-full bg-bg-card p-6 sm:p-8"
             style={{ border: '0.5px solid rgba(220,20,60,0.3)', borderRadius: 8 }}
             onClick={e => e.stopPropagation()}
           >
@@ -91,9 +91,24 @@ export default function ProjectsSection() {
                 <span key={t} className="text-crimson text-[9px] px-2 py-1 rounded" style={{ background: 'rgba(220,20,60,0.06)', border: '0.5px solid rgba(220,20,60,0.15)' }}>{t}</span>
               ))}
             </div>
-            <a href={open.liveUrl} className="inline-flex items-center gap-2 text-[12px] text-ink-body" style={{ border: '0.5px solid #333', padding: '8px 16px' }}>
-              <span className="text-crimson">&gt;</span> View Live Project →
-            </a>
+            <div className="flex flex-wrap gap-3">
+              <a href={open.liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-[12px] text-ink-body hover:text-crimson transition-colors" style={{ border: '0.5px solid #333', padding: '8px 16px' }}>
+                <span className="text-crimson">&gt;</span> View Live Project &rarr;
+              </a>
+              {open.repositories?.map(repository => (
+                <a
+                  key={repository.url}
+                  href={repository.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${open.title} ${repository.label} on GitHub`}
+                  className="inline-flex items-center gap-2 text-[12px] text-ink-body hover:text-crimson transition-colors"
+                  style={{ border: '0.5px solid #333', padding: '8px 16px' }}
+                >
+                  {repository.label} GitHub &rarr;
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       )}
